@@ -1,0 +1,12 @@
+[build]
+target = "./src/index.html"
+release = true
+frozen = true
+locked = true
+minify = "always"
+
+[serve]
+open = true
+
+[clean]
+cargo = true

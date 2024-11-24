@@ -13,10 +13,14 @@ nixPkgs = [
     'trunk',                                                     # used to buidl wasm
 ]
 nixOverlays = ['https://github.com/oxalica/rust-overlay/archive/master.tar.gz']
-nixpkgsArchive = '5148520bfab61f99fd25fb9ff7bfbb50dad3c9db'
+nixpkgsArchive = '8d48200ead5adea71485965f92405575c66dab04'
 onlyIncludeFiles = ['rust-toolchain.toml']
 
 [phases.build]
 dependsOn = ['setup']
-cmds = ['trunk build --release']
+cmds = ['trunk build --release --frozen --locked --minify']
 cacheDirectories = ['/root/.cargo/git', '/root/.cargo/registry', 'target']
+
+[start]
+runImage = 'debian:bullseye-slim'
+onlyIncludeFiles = ['./dist']
