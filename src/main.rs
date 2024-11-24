@@ -13,12 +13,8 @@ fn App() -> impl IntoView {
     logging::log!("app mounted");
     view! {
         <Button on:click=move |_| {
-            spawn_local(async {
-                test_server_fn().await.unwrap();
-            });
-        }>
-            "Click here to run server fn:" {count}
-        </Button>
+            set_count.update(|x| *x += 1)
+        }>"Click here to run server fn:" {count}</Button>
     }
 }
 

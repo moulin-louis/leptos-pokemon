@@ -1,0 +1,22 @@
+providers = ['staticfile']
+buildImage = 'ghcr.io/railwayapp/nixpacks:ubuntu-1731369831'
+
+[variables]
+NIXPACKS_METADATA = 'rust'
+
+[phases.setup]
+nixPkgs = [
+    '...',
+    'binutils',
+    'gcc',
+    '(rust-bin.fromRustupToolchainFile ../rust-toolchain.toml)',
+    'trunk',                                                     # used to buidl wasm
+]
+nixOverlays = ['https://github.com/oxalica/rust-overlay/archive/master.tar.gz']
+nixpkgsArchive = '5148520bfab61f99fd25fb9ff7bfbb50dad3c9db'
+onlyIncludeFiles = ['rust-toolchain.toml']
+
+[phases.build]
+dependsOn = ['setup']
+cmds = ['trunk build --release']
+cacheDirectories = ['/root/.cargo/git', '/root/.cargo/registry', 'target']
