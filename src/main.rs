@@ -1,20 +1,34 @@
 use leptos::*;
 use thaw::Button;
+use std::result::Result;
 
-#[server(TestServerFn, "test_server_fn", "GetJson")]
-pub async fn test_server_fn() -> Result<(), ServerFnError> {
-    println!("hello from server");
-    Ok(())
+async fn make_request() -> Result<String, reqwest::Error> {
+    let res = reqwest::Client::new().get("http://localhost:8000").send().await?;
+    res.text().await
 }
 
 #[component]
 fn App() -> impl IntoView {
     let (count, set_count) = create_signal(0);
+    let (res, set_res) = create_signal("nothing".to_string());
     logging::log!("app mounted");
+    let inc_counter = move |_| {
+        set_count.update(|x| *x += 1);
+    };
+
+    let async_data = create_resource(|| (), |_| async move {
+        make_request().await.unwrap()
+    });
+
+
     view! {
-        <Button on:click=move |_| {
-            set_count.update(|x| *x += 1)
-        }>"Click here to run server fn:" {count}</Button>
+        <div>
+            <Button on_click=inc_counter>"Click here to increment counter:" {count}</Button>
+            {move || match async_data() {
+                None => view! { <p>"Loading"</p> }.into_view(),
+                Some(x) => view! { <p>"data = " {x}</p> }.into_view(),
+            }}
+        </div>
     }
 }
 
