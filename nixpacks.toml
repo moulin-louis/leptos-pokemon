@@ -1,66 +1,21 @@
-providers = []
-buildImage = 'ghcr.io/railwayapp/nixpacks:ubuntu-1731369831'
+providers = ['rust', 'staticfile']
 
-[variables]
-NIXPACKS_METADATA = 'rust'
+[phases."staticfile:setup"]
+onlyIncludeFiles = ['./nginx.conf']
+nixpkgsArchive = '8d48200ead5adea71485965f92405575c66dab04'
 
 [phases.setup]
 nixPkgs = [
     '...',
-    'binutils',
-    'gcc',
-    '(rust-bin.fromRustupToolchainFile ../rust-toolchain.toml)',
-    'trunk',                                                     # used to buidl wasm
+    'trunk', # used to buidl wasm
 ]
-nixOverlays = ['https://github.com/oxalica/rust-overlay/archive/master.tar.gz']
 nixpkgsArchive = '8d48200ead5adea71485965f92405575c66dab04'
-onlyIncludeFiles = ['rust-toolchain.toml']
 
 [phases.build]
-dependsOn = ['setup']
 cmds = ['trunk build --release --frozen --locked --minify']
-cacheDirectories = ['/root/.cargo/git', '/root/.cargo/registry', 'target']
 
-[staticAssets]
-"nginx.conf" = '''
-
-daemon off;
-
-error_log /dev/stdout info;
-worker_processes auto;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /nix/store/*-user-environment/conf/mime.types;
-    access_log /dev/stdout;
-    default_type text/html;
-
-    types {
-        text/html html htm;
-        application/wasm wasm;
-        text/javascript js;
-    }
-    
-    sendfile on;
-    keepalive_timeout 60;
-    types_hash_max_size 4096;
-
-    server {
-        listen 0.0.0.0:80;
-        gzip on;
-        root /app/dist;
-        
-        location / {
-            autoindex off;
-        }
-    }
-}
-'''
 
 [start]
-cmd = "nginx -c /assets/nginx.conf"
+cmd = "nginx -c /app/nginx.conf"
 runImage = 'nginx:1.27.2'
-onlyIncludeFiles = ['./dist', '/assets/nginx.conf']
+onlyIncludeFiles = ['/app/dist', '/app/nginx.conf']
